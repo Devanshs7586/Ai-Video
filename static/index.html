@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FrameMind AI — Video Intelligence Studio</title>
+  <meta name="description" content="Transcribe, summarize and chat with videos using local Whisper and OpenAI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#">
+      <span class="brand-mark"><span></span></span>
+      <span>FrameMind <b>AI</b></span>
+    </a>
+    <div class="status-cluster">
+      <span class="status-chip" id="apiStatus"><i></i> Checking AI stack</span>
+      <a href="#studio" class="ghost-link">Studio</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="eyebrow"><span></span> VIDEO INTELLIGENCE, WITHOUT THE NOISE</div>
+      <h1>Turn hours of video into<br><em>searchable intelligence.</em></h1>
+      <p>Drop a recording or paste a YouTube link. FrameMind transcribes locally, extracts the signal, and lets you ask questions grounded in the transcript.</p>
+      <div class="hero-badges">
+        <span>Local Whisper</span><span>OpenAI</span><span>Semantic RAG</span><span>Hinglish Ready</span>
+      </div>
+    </section>
+
+    <section class="studio-shell" id="studio">
+      <aside class="rail">
+        <div class="rail-heading">WORKFLOW</div>
+        <div class="rail-step active" data-stage="input"><b>01</b><span>Source</span></div>
+        <div class="rail-step" data-stage="audio"><b>02</b><span>Audio prep</span></div>
+        <div class="rail-step" data-stage="transcription"><b>03</b><span>Transcribe</span></div>
+        <div class="rail-step" data-stage="intelligence"><b>04</b><span>AI analysis</span></div>
+        <div class="rail-step" data-stage="knowledge"><b>05</b><span>Knowledge base</span></div>
+        <div class="rail-step" data-stage="complete"><b>06</b><span>Results</span></div>
+        <div class="rail-foot">Runs on your PC<br><strong>Audio stays local in English mode</strong></div>
+      </aside>
+
+      <div class="workspace">
+        <section class="input-view" id="inputView">
+          <div class="section-kicker">NEW ANALYSIS</div>
+          <div class="section-row">
+            <div>
+              <h2>What should we analyze?</h2>
+              <p>Choose a URL or upload a local audio/video file.</p>
+            </div>
+            <div class="language-switch" role="group" aria-label="Language">
+              <button class="lang active" data-lang="english">English</button>
+              <button class="lang" data-lang="hinglish">Hinglish</button>
+            </div>
+          </div>
+
+          <div class="source-tabs">
+            <button class="source-tab active" data-source="url"><span>↗</span> YouTube URL</button>
+            <button class="source-tab" data-source="file"><span>＋</span> Upload file</button>
+          </div>
+
+          <div class="source-pane active" id="urlPane">
+            <label for="sourceUrl">YouTube link</label>
+            <div class="url-box">
+              <span class="url-icon">▶</span>
+              <input id="sourceUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off" />
+              <button class="clear-input" id="clearUrl" aria-label="Clear URL">×</button>
+            </div>
+            <p class="field-note">Public YouTube videos supported via yt-dlp.</p>
+          </div>
+
+          <div class="source-pane" id="filePane">
+            <input id="fileInput" type="file" accept="audio/*,video/*,.mp3,.wav,.m4a,.mp4,.mov,.mkv,.webm" hidden />
+            <label class="dropzone" id="dropzone" for="fileInput">
+              <div class="drop-icon">⇧</div>
+              <strong>Drop media here</strong>
+              <span>or click to browse your computer</span>
+              <small>MP3, WAV, M4A, MP4, MOV, MKV, WEBM</small>
+            </label>
+            <div class="file-card hidden" id="fileCard">
+              <div class="file-type">MEDIA</div>
+              <div class="file-meta"><strong id="fileName"></strong><span id="fileSize"></span></div>
+              <button id="removeFile">Remove</button>
+            </div>
+          </div>
+
+          <div class="mode-note" id="modeNote">
+            <span class="note-icon">◎</span>
+            <div><strong>English mode</strong><p>Speech-to-text runs with local Whisper. OpenAI is used after transcription for analysis and chat.</p></div>
+          </div>
+
+          <button class="primary-cta" id="analyzeBtn">
+            <span>Analyze media</span><i>→</i>
+          </button>
+          <p class="error-text hidden" id="formError"></p>
+        </section>
+
+        <section class="processing-view hidden" id="processingView">
+          <div class="processing-top">
+            <div><div class="section-kicker">ANALYSIS IN PROGRESS</div><h2 id="processingTitle">Building your video intelligence…</h2></div>
+            <div class="progress-number" id="progressNumber">0%</div>
+          </div>
+          <div class="progress-track"><span id="progressBar"></span></div>
+          <div class="signal-card">
+            <div class="signal-visual">
+              <div class="wave" id="wave"></div>
+            </div>
+            <div class="signal-copy"><span id="stageBadge">QUEUED</span><h3 id="stageMessage">Starting analysis…</h3><p>This can take a while for longer videos, especially on first Whisper/model download.</p></div>
+          </div>
+          <div class="pipeline-grid" id="pipelineGrid">
+            <div class="pipe-card" data-pipe="audio"><b>01</b><span>Audio preparation</span><i>Waiting</i></div>
+            <div class="pipe-card" data-pipe="transcription"><b>02</b><span>Speech transcription</span><i>Waiting</i></div>
+            <div class="pipe-card" data-pipe="intelligence"><b>03</b><span>OpenAI analysis</span><i>Waiting</i></div>
+            <div class="pipe-card" data-pipe="knowledge"><b>04</b><span>Semantic index</span><i>Waiting</i></div>
+          </div>
+          <button class="text-btn" id="resetDuring">Start another analysis</button>
+          <p class="error-text hidden" id="jobError"></p>
+        </section>
+
+        <section class="results-view hidden" id="resultsView">
+          <div class="result-header">
+            <div>
+              <div class="section-kicker">ANALYSIS COMPLETE</div>
+              <h2 id="resultTitle">Untitled analysis</h2>
+              <div class="result-meta"><span id="resultWords">0 words</span><span id="resultLanguage">English</span><span>RAG ready</span></div>
+            </div>
+            <button class="outline-btn" id="newAnalysis">＋ New analysis</button>
+          </div>
+
+          <nav class="result-tabs" id="resultTabs">
+            <button class="active" data-tab="overview">Overview</button>
+            <button data-tab="actions">Action items</button>
+            <button data-tab="decisions">Decisions</button>
+            <button data-tab="questions">Open questions</button>
+            <button data-tab="transcript">Transcript</button>
+            <button data-tab="chat">Ask AI <span>↗</span></button>
+          </nav>
+
+          <div class="tab-panel active" id="overviewPanel">
+            <article class="insight-card feature-card">
+              <div class="card-label"><span>✦</span> EXECUTIVE SUMMARY <button class="copy-btn" data-copy="summaryText">Copy</button></div>
+              <div class="rich-text" id="summaryText"></div>
+            </article>
+            <div class="mini-grid">
+              <article class="insight-card"><div class="card-label"><span>✓</span> ACTION ITEMS</div><div class="rich-text compact" id="actionsPreview"></div><button class="card-link" data-open-tab="actions">View all →</button></article>
+              <article class="insight-card"><div class="card-label"><span>◆</span> KEY DECISIONS</div><div class="rich-text compact" id="decisionsPreview"></div><button class="card-link" data-open-tab="decisions">View all →</button></article>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="actionsPanel"><article class="insight-card"><div class="card-label">ACTION ITEMS <button class="copy-btn" data-copy="actionsText">Copy</button></div><div class="rich-text" id="actionsText"></div></article></div>
+          <div class="tab-panel" id="decisionsPanel"><article class="insight-card"><div class="card-label">KEY DECISIONS <button class="copy-btn" data-copy="decisionsText">Copy</button></div><div class="rich-text" id="decisionsText"></div></article></div>
+          <div class="tab-panel" id="questionsPanel"><article class="insight-card"><div class="card-label">OPEN QUESTIONS <button class="copy-btn" data-copy="questionsText">Copy</button></div><div class="rich-text" id="questionsText"></div></article></div>
+          <div class="tab-panel" id="transcriptPanel">
+            <article class="insight-card transcript-card">
+              <div class="card-label">FULL TRANSCRIPT <div><button class="copy-btn" data-copy="transcriptText">Copy</button><button class="copy-btn" id="downloadTranscript">Download .txt</button></div></div>
+              <div class="transcript-search"><span>⌕</span><input id="transcriptSearch" placeholder="Search transcript…" /></div>
+              <div class="transcript-text" id="transcriptText"></div>
+            </article>
+          </div>
+          <div class="tab-panel" id="chatPanel">
+            <div class="chat-layout">
+              <div class="chat-intro"><div class="chat-orb">✦</div><h3>Ask the transcript</h3><p>Answers are grounded in the semantic index built from this video.</p><div class="suggestions"><button>What are the main takeaways?</button><button>What deadlines were mentioned?</button><button>What should happen next?</button></div></div>
+              <div class="chat-box">
+                <div class="messages" id="messages"><div class="message ai"><span>AI</span><p>Your transcript is indexed. Ask me anything about the video.</p></div></div>
+                <form class="chat-form" id="chatForm"><input id="chatInput" placeholder="Ask a question about this video…" autocomplete="off" /><button aria-label="Send">↑</button></form>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>FrameMind AI</span><p>Local transcription. Grounded answers. Your own intelligence layer.</p></footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>
